@@ -47,7 +47,7 @@ LandsatFunction* setLandsatFunction(int number_sensor, ldouble sun_elevation, ld
 }
 
 int main(int argc, char *argv[]){
-    
+
     //lambdas
     auto validDir = [](string directory){
         if(directory.size() >= 1 && directory.back() != '/')
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
 
     auto endsWith = [](string text, string pattern){
         bool result = false;
-        if(text.size() > pattern.size()){ 
+        if(text.size() > pattern.size()){
         string match = text.substr(text.size() - pattern.size(), pattern.size());
         if(match == pattern)
             result = true;
@@ -80,19 +80,19 @@ int main(int argc, char *argv[]){
         vector<string> files;
         if(dirp){
             files = readFiles(dirp);
-            
+
             auto iterator = remove_if(files.begin(), files.end(), [endsWith, suffix](string fileName){
                 for(int i=0; i<fileName.size(); i++) fileName[i] = tolower(fileName[i]);
                 return !endsWith(fileName, suffix);
             });
-            
+
             files.erase(iterator, files.end());
 
         } else {
             cerr << "Directory " << directoryName.substr(0, directoryName.size() - 1) << " not found" << endl;
             exit(0);
         }
-        
+
         closedir(dirp);
         return files;
     };
@@ -153,10 +153,10 @@ int main(int argc, char *argv[]){
 
     //verify quantity snow and shadows
     string path_tiff_band_bqa = inputDirectory + tiffFiles[POS_BAND_BQA];
-    if(analisyShadow(path_tiff_band_bqa, number_sensor)){
-        cerr << "Image invalid";
-        exit(0);
-    }
+    //if(analisyShadow(path_tiff_band_bqa, number_sensor)){
+    //    cerr << "Image invalid";
+    //    exit(0);
+    //}
 
     //load band 4 (tiff)
     string path_tiff_band_4 = inputDirectory + tiffFiles[POS_BAND_4];
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]){
     Tiff band5 = TIFFOpen(path_tiff_band_5.c_str(), "rm");
 
     //load tiff ndvi
-    string path_output_tiff_ndvi = outputDirectory + "ndvi.tif"; 
+    string path_output_tiff_ndvi = outputDirectory + "ndvi.tif";
     Tiff ndvi = TIFFOpen(path_output_tiff_ndvi.c_str(), "w8");
 
     //process NDVI
