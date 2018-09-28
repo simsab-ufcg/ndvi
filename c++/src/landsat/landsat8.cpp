@@ -27,7 +27,7 @@ void Landsat8::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
 
     ldouble *lineB4 = new ldouble[width];
     ldouble *lineB5 = new ldouble[width];
-    ldouble *lineNDVI = (ldouble*) malloc(sizeof(ldouble) * width);
+    ldouble lineNDVI[width];
 
     for(int i = 0; i < height; i++){
         TIFFReadScanline(band4, lineB4, i);

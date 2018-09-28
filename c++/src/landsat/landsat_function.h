@@ -3,7 +3,6 @@
     #define LANDSAT_INCLUDED
 
     #include "../types.h"
-    #include <algorithm>
     #include <math.h>
 
     struct LandsatFunction{

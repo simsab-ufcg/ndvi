@@ -37,7 +37,7 @@ void Landsat7::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
     ldouble *lineB5 = new ldouble[width];
     ldouble randianceB4[width];
     ldouble randianceB5[width];
-    ldouble *lineNDVI = (ldouble*) malloc(sizeof(ldouble) * width);
+    ldouble lineNDVI[width];
     vector<ldouble> paramB4 = getSensor().getParamBand4();
     vector<ldouble> paramB5 = getSensor().getParamBand5();
 

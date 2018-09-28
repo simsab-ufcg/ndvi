@@ -1,6 +1,5 @@
 #include "readMeta.h"
 #include <string.h>
-#include <iostream>
 
 string ReadMeta::search(string filter){
     ifstream in(path_meta_file);
