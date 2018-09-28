@@ -1,0 +1,7 @@
+samples/
+run
+*.tif
+*.TIF
+*.xml
+*mtl*
+*MTL*

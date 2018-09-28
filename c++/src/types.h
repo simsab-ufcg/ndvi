@@ -3,7 +3,6 @@
   #define TYPES_INCLUDED
   
   #include <vector>
-  #include <limits>
   #include <tiffio.h>
 
   using namespace std;

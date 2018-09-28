@@ -1,5 +1,5 @@
 #include "landsat_function.h"
-#include <iostream>
+
 LandsatFunction::LandsatFunction(ldouble sun_elevation){
     this->sun_elevation = sun_elevation;
 }
