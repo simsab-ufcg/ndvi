@@ -1,5 +1,0 @@
-#!/bin/bash
-
-git clone https://github.com/simsab-ufcg/landsat-samples.git
-mv landsat-samples samples
-mkdir samples/sample1/output
