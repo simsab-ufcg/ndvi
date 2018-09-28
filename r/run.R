@@ -5,7 +5,7 @@
 #                                                                                      #
 ########################################################################################
 
-options(echo=TRUE) 
+#options(echo=TRUE) 
 rm(list=ls())
 
 # Import library
@@ -21,7 +21,7 @@ if(length(args) < 1 || length(args) > 3){
 }
 
 # Import logger
-source("assets/logger.R")
+source("src/logger.R")
 
 # Constants
 INPUT_DIRECTORY_INDEX <- 1
@@ -41,10 +41,10 @@ meta_path <- list.files(path = input_path, pattern = "*mtl.txt|*MTL.txt", full.n
 output_path<-paste(args[OUTPUT_DIRECTORY_INDEX], "NDVI" , ".tif", sep="")
 
 # Load the source code in landsat.R to this code
-source("assets/landsat2.R")
+source("src/landsat2.R")
 
 # Import basics configurations
-source("assets/conf.R")
+source("src/conf.R")
 
 # Reading image file
 # The Images are of the type ".tif" that represents each spectral band captured by the satellite
@@ -114,14 +114,14 @@ logger("LoadTiffs end")
 ################## Bounding Box ##################################
 
 # The Bounding Box area that is important and has less noise in the Image
-bounding_boxes_path <- "assets/wrs2_asc_desc/wrs2_asc_desc_recorte.shp"
+bounding_boxes_path <- "src/wrs2_asc_desc/wrs2_asc_desc_recorte.shp"
 bounding_boxes <- readShapePoly(bounding_boxes_path, proj4string=CRS(WGS84))
 bounding_box <- bounding_boxes[bounding_boxes@data$WRSPR == WRSPR, ]
 
 ################## Elevation ##################################
 
 # Read the File that stores the Elevation of the image area, this influence on some calculations
-tif_elevation <- "assets/elevation/srtm_29_14.tif"
+tif_elevation <- "src/elevation/srtm_29_14.tif"
 raster_elevation <- raster(tif_elevation)
 raster_elevation <- crop(raster_elevation, extent(bounding_box))
 
@@ -162,7 +162,7 @@ logger("NDVICalc end")
 # This block mask the values in the landsat output rasters that has cloud cells and are inside the Bounding Box required
 # This block is already Clustered
 
-#output <- mask(output, bounding_box)
+output <- mask(output, bounding_box)
 logger("MaskValues end")
 
 ################## Write NDVI Tiff ##################################
