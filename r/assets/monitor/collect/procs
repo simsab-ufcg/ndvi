@@ -1,0 +1,8 @@
+1537985985 Preprocess end 
+1537985986 AnalisyTiff end 
+1537985992 LoadTiffs end 
+1537986002 LoadRasterElevation end 
+1537986005 ResampleImage end 
+1537986006 NDVICalc end 
+1537986052 MaskValues end 
+1537986053 WriteRaster end 
