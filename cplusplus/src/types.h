@@ -10,5 +10,7 @@
   using ldouble = double;
 
   using Tiff = TIFF*;
+  
+  const ldouble EPS = 1e-7;
 
 #endif

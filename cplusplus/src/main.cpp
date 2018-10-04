@@ -8,6 +8,8 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
+#include "utils.h"
+
 
 using namespace std;
 
@@ -26,24 +28,28 @@ bool analisyShadow(string path_tiff_band_bqa, int number_sensor){
     int fmask = setMask(number_sensor);
 
     Tiff band_bqa = TIFFOpen(path_tiff_band_bqa.c_str(), "rm");
+    
+    uint16 sampleBqa;
 
     uint32 height_tiff_bqa, width_tiff_bqa;
 
     TIFFGetField(band_bqa, TIFFTAG_IMAGELENGTH, &height_tiff_bqa);
     TIFFGetField(band_bqa, TIFFTAG_IMAGEWIDTH, &width_tiff_bqa);
+    TIFFGetField(band_bqa, TIFFTAG_SAMPLEFORMAT, &sampleBqa);
 
     tdata_t buf;
     unsigned short byte_size = TIFFScanlineSize(band_bqa)/width_tiff_bqa;
     buf = _TIFFmalloc(TIFFScanlineSize(band_bqa));
 
     long long quant_pixels_valid = 0;
-    int pixel;
+    ldouble pixel;
+    PixelReader prBqa = PixelReader(sampleBqa, byte_size, buf);
 
     for(int line = 0; line < height_tiff_bqa; line++){
         TIFFReadScanline(band_bqa, buf, line);
         for(int row = 0; row < width_tiff_bqa; row++){
-            memcpy(&pixel, (int*) buf + (row * byte_size), byte_size);
-            if(pixel == fmask) quant_pixels_valid++;
+            pixel = prBqa.readPixel(row);
+            if(fabs(pixel - fmask) <= EPS) quant_pixels_valid++;
         }
     }
     _TIFFfree(buf);
@@ -79,18 +85,16 @@ void setup(Tiff ndvi, Tiff bandBase){
     
     TIFFSetField(ndvi, TIFFTAG_IMAGEWIDTH     , imageWidth); 
     TIFFSetField(ndvi, TIFFTAG_IMAGELENGTH    , imageLength);
-    TIFFSetField(ndvi, TIFFTAG_BITSPERSAMPLE  , bitsPerSample);
-    TIFFSetField(ndvi, TIFFTAG_SAMPLEFORMAT   , sampleFormat);
-    TIFFSetField(ndvi, TIFFTAG_COMPRESSION    , compression);
-    TIFFSetField(ndvi, TIFFTAG_PHOTOMETRIC    , photometric);
-    TIFFSetField(ndvi, TIFFTAG_SAMPLESPERPIXEL, samplePerPixel);
-    TIFFSetField(ndvi, TIFFTAG_ROWSPERSTRIP   , rowsPerStrip);
-    TIFFSetField(ndvi, TIFFTAG_RESOLUTIONUNIT , resolutionUnit);
-    TIFFSetField(ndvi, TIFFTAG_XRESOLUTION    , xResolution);
-    TIFFSetField(ndvi, TIFFTAG_YRESOLUTION    , yResolution);
+    TIFFSetField(ndvi, TIFFTAG_BITSPERSAMPLE  , 64);
+    TIFFSetField(ndvi, TIFFTAG_SAMPLEFORMAT   , 3);
+    TIFFSetField(ndvi, TIFFTAG_COMPRESSION    , 1);
+    TIFFSetField(ndvi, TIFFTAG_PHOTOMETRIC    , 1);
+    TIFFSetField(ndvi, TIFFTAG_SAMPLESPERPIXEL, 1);
+    TIFFSetField(ndvi, TIFFTAG_ROWSPERSTRIP   , 8);
+    TIFFSetField(ndvi, TIFFTAG_RESOLUTIONUNIT , 1);
+    TIFFSetField(ndvi, TIFFTAG_XRESOLUTION    , 1);
+    TIFFSetField(ndvi, TIFFTAG_YRESOLUTION    , 1);
     TIFFSetField(ndvi, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG );
-
-    cout << sampleFormat << endl;
     
 }
 
@@ -122,10 +126,11 @@ int main(int argc, char *argv[]){
 
     //verify quantity snow and shadows
     string path_tiff_band_bqa = argv[INPUT_BAND_BQA_INDEX];
-    /*if(analisyShadow(path_tiff_band_bqa, number_sensor)){
+    
+    if(analisyShadow(path_tiff_band_bqa, number_sensor)){
         cerr << "Invalid inputs. Lots of cloud in tiff images";
         exit(0);
-    }*/
+    }
 
     //load band 4 (tiff)
     string path_tiff_band_4 = argv[INPUT_BAND_4_INDEX];
