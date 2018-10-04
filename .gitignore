@@ -5,3 +5,5 @@ run
 *.xml
 *mtl*
 *MTL*
+.Rhistory
+out
