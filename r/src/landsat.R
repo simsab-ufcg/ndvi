@@ -24,9 +24,6 @@ landsat <- function(){
   
   NDVI_temp<-(reflectance[[2]] - reflectance[[1]]) / (reflectance[[2]] + reflectance[[1]])
 
-  # Transmissivity 
-  #tal <- 0.75 + 2*10^-5 * raster_elevation
-
   NDVI <- Fmask
   NDVI[]<-NDVI_temp
 

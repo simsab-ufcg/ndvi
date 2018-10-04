@@ -3,7 +3,7 @@
 number_clusters <- 1
 
 # Read relative distance from Sun to Earth
-load("/home/thiagao/workspace/ndvi-gen/r/src/d_sun_earth.RData")
+load("src/d_sun_earth.RData")
 
 # Set projection and spatial resolution
 WGS84 <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
@@ -26,7 +26,7 @@ sun_elevation <- as.numeric(meta_file$V2[meta_file$V1 == grep(pattern="SUN_ELEVA
 costheta <- sin(sun_elevation * pi / 180) # From SUN ELEVATION
 
 # Import data from the sensor parameters
-source("/home/thiagao/workspace/ndvi-gen/r/src/parameters.R")
+source("src/parameters.R")
 
 # Setting the sensor parameter by the Sattelite sensor type and data
 param_sensor = setParamSensor(number_sensors)
