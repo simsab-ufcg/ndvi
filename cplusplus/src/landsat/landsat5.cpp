@@ -5,6 +5,10 @@ void Landsat5::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
 
     // Load Tiff information
     uint32 height, width;
+    uint16 sampleBand4, sampleBand5;
+
+    TIFFGetField(band4, TIFFTAG_SAMPLEFORMAT, &sampleBand4);
+    TIFFGetField(band5, TIFFTAG_SAMPLEFORMAT, &sampleBand5);
 
     TIFFGetField(band4, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(band4, TIFFTAG_IMAGEWIDTH, &width);
@@ -19,8 +23,8 @@ void Landsat5::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
 
     // Auxiliars variables
     ldouble ref4, ref5;
-    ldouble pi = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648566923460348610454326648213393607260249141273;
-    ldouble costheta = sin(sun_elevation*pi/180);
+    ldouble pi = 3.14159265358979323;
+    ldouble sintheta = sin(sun_elevation*pi/180);
 
     // Auxiliars arrays 
     tdata_t lineb4, lineb5;
@@ -31,9 +35,14 @@ void Landsat5::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
 
     ldouble randianceB4[width];
     ldouble randianceB5[width];
+
     ldouble lineNDVI[width];
+
     vector<ldouble> paramB4 = getSensor().getParamBand4();
     vector<ldouble> paramB5 = getSensor().getParamBand5();
+
+    PixelReader pr4(sampleBand4, byteSizeb4, lineb4);
+    PixelReader pr5(sampleBand5, byteSizeb5, lineb5);
 
     for(int i = 0; i < height; i++){
         TIFFReadScanline(band4, lineb4, i);
@@ -41,9 +50,8 @@ void Landsat5::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
 
         // RadianceCalc
         for(int j = 0; j < width; j++){
-            unsigned long long pixelb4 = 0, pixelb5 = 0;
-			memcpy(&pixelb4, lineb4 + (j * byteSizeb4), byteSizeb4);
-            memcpy(&pixelb5, lineb5 + (j * byteSizeb5), byteSizeb5);
+            ldouble pixelb4 = pr4.readPixel(j);
+            ldouble pixelb5 = pr5.readPixel(j);
 
             randianceB4[j] = (pixelb4) * paramB4[GRESCALE] + paramB4[BRESCALE];
             randianceB5[j] = (pixelb5) * paramB5[GRESCALE] + paramB5[BRESCALE];
@@ -54,20 +62,17 @@ void Landsat5::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
 
         //ReflectanceCalc
         for(int j = 0; j < width; j++){
-            ref4 = (pi * randianceB4[j] * (dist_sun_earth*dist_sun_earth)) / (costheta * paramB4[ESUN]);
-            ref5 = (pi * randianceB5[j] * (dist_sun_earth*dist_sun_earth)) / (costheta * paramB5[ESUN]);
+            ref4 = (pi * randianceB4[j] * (dist_sun_earth*dist_sun_earth)) / (sintheta * paramB4[ESUN]);
+            ref5 = (pi * randianceB5[j] * (dist_sun_earth*dist_sun_earth)) / (sintheta * paramB5[ESUN]);
 
             lineNDVI[j] = (ref5 - ref4) / (ref5 + ref4);
-            cout << lineNDVI[j] << " ";
         }
-        cout << endl;
 
         TIFFWriteScanline(ndvi, lineNDVI, i);
     }
 
-    TIFFClose(band4);
-    TIFFClose(band5);
-    TIFFClose(ndvi);
+    _TIFFfree(lineb4);
+    _TIFFfree(lineb5);
 };
 
 Sensor Landsat5::getSensor(){

@@ -146,7 +146,9 @@ int main(int argc, char *argv[]){
     LandsatFunction* landsat;
     landsat = setLandsatFunction(number_sensor, sun_elevation, dist_sun_earth);
     (*landsat).processNDVI(band4, band5, ndvi);
-
+    TIFFClose(band4);
+    TIFFClose(band5);
+    TIFFClose(ndvi);
     logger("NDVICalc");
     return 0;
 }
