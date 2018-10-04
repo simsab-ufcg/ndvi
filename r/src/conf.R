@@ -3,7 +3,7 @@
 number_clusters <- 1
 
 # Read relative distance from Sun to Earth
-load("src/d_sun_earth.RData")
+load("/home/thiagao/workspace/ndvi-gen/r/src/d_sun_earth.RData")
 
 # Set projection and spatial resolution
 WGS84 <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
@@ -16,7 +16,6 @@ landsat_scene_id <- substr(meta_file$V2[meta_file$V1 == grep(pattern="LANDSAT_SC
 # Load some data
 number_sensors <- as.numeric(substr(landsat_scene_id, 3, 3))    #Sensor Number
 WRSPR <- substr(landsat_scene_id, 4, 9)                         #WRSPR
-year <- as.numeric(substr(landsat_scene_id, 10, 13))            #Images year
 julianDay <- as.numeric(substr(landsat_scene_id, 14, 16))	    #Julian Day
 
 # Reading meta_file File for Sensor number 8
@@ -27,7 +26,7 @@ sun_elevation <- as.numeric(meta_file$V2[meta_file$V1 == grep(pattern="SUN_ELEVA
 costheta <- sin(sun_elevation * pi / 180) # From SUN ELEVATION
 
 # Import data from the sensor parameters
-source("src/parameters.R")
+source("/home/thiagao/workspace/ndvi-gen/r/src/parameters.R")
 
 # Setting the sensor parameter by the Sattelite sensor type and data
-param_sensor = setParamSensor(number_sensors, year)
+param_sensor = setParamSensor(number_sensors)
