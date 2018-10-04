@@ -4,6 +4,7 @@
 
     #include "../types.h"
     #include <math.h>
+    #include <string.h>
 
     struct LandsatFunction{
         ldouble sun_elevation;

@@ -1,4 +1,5 @@
 #include "landsat7.h"
+#include <iostream>
 
 void Landsat7::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
 
@@ -10,17 +11,6 @@ void Landsat7::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
 
     TIFFSetField(ndvi, TIFFTAG_IMAGEWIDTH     , width); 
     TIFFSetField(ndvi, TIFFTAG_IMAGELENGTH    , height);
-    TIFFSetField(ndvi, TIFFTAG_BITSPERSAMPLE  , 64);
-    TIFFSetField(ndvi, TIFFTAG_SAMPLEFORMAT   , 3);
-    TIFFSetField(ndvi, TIFFTAG_COMPRESSION    , 1);
-    TIFFSetField(ndvi, TIFFTAG_PHOTOMETRIC    , 1);
-    TIFFSetField(ndvi, TIFFTAG_ORIENTATION    , 1);
-    TIFFSetField(ndvi, TIFFTAG_SAMPLESPERPIXEL, 1);
-    TIFFSetField(ndvi, TIFFTAG_ROWSPERSTRIP   , 8);
-    TIFFSetField(ndvi, TIFFTAG_RESOLUTIONUNIT , 1);
-    TIFFSetField(ndvi, TIFFTAG_XRESOLUTION    , 1);
-    TIFFSetField(ndvi, TIFFTAG_YRESOLUTION    , 1);
-    TIFFSetField(ndvi, TIFFTAG_PLANARCONFIG , PLANARCONFIG_CONTIG );
 
     // Constants
     const int GRESCALE = 0;
@@ -33,8 +23,12 @@ void Landsat7::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
     ldouble costheta = sin(sun_elevation*pi/180);
 
     // Auxiliars arrays 
-    ldouble *lineB4 = new ldouble[width];
-    ldouble *lineB5 = new ldouble[width];
+    tdata_t lineb4, lineb5;
+    unsigned short byteSizeb4 = TIFFScanlineSize(band4)/width;
+    unsigned short byteSizeb5 = TIFFScanlineSize(band5)/width;
+    lineb4 = _TIFFmalloc(TIFFScanlineSize(band4));
+    lineb5 = _TIFFmalloc(TIFFScanlineSize(band5));
+
     ldouble randianceB4[width];
     ldouble randianceB5[width];
     ldouble lineNDVI[width];
@@ -42,21 +36,32 @@ void Landsat7::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
     vector<ldouble> paramB5 = getSensor().getParamBand5();
 
     for(int i = 0; i < height; i++){
-        TIFFReadScanline(band4, lineB4, i);
-        TIFFReadScanline(band5, lineB5, i);
+        TIFFReadScanline(band4, lineb4, i);
+        TIFFReadScanline(band5, lineb5, i);
 
         // RadianceCalc
         for(int j = 0; j < width; j++){
-            randianceB4[j] = lineB4[j] * paramB4[GRESCALE] + paramB4[BRESCALE];
-            randianceB5[j] = lineB5[j] * paramB5[GRESCALE] + paramB5[BRESCALE];
+            unsigned long long pixelb4 = 0, pixelb5 = 0;
+			memcpy(&pixelb4, lineb4 + (j * byteSizeb4), byteSizeb4);
+            memcpy(&pixelb5, lineb5 + (j * byteSizeb5), byteSizeb5);
+
+            randianceB4[j] = (pixelb4) * paramB4[GRESCALE] + paramB4[BRESCALE];
+            randianceB5[j] = (pixelb5) * paramB5[GRESCALE] + paramB5[BRESCALE];
+
+            if(randianceB4[j] < 0) randianceB4[j] = 0;
+            if(randianceB5[j] < 0) randianceB5[j] = 0;
         }
 
         //ReflectanceCalc
         for(int j = 0; j < width; j++){
             ref4 = (pi * randianceB4[j] * (dist_sun_earth*dist_sun_earth)) / (costheta * paramB4[ESUN]);
             ref5 = (pi * randianceB5[j] * (dist_sun_earth*dist_sun_earth)) / (costheta * paramB5[ESUN]);
+
             lineNDVI[j] = (ref5 - ref4) / (ref5 + ref4);
+            //cout << lineNDVI[j] << " ";
         }
+        //cout << endl;
+
         TIFFWriteScanline(ndvi, lineNDVI, i);
     }
 
