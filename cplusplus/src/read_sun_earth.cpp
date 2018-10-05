@@ -1,4 +1,4 @@
-#include "readSunEarth.h"
+#include "read_sun_earth.h"
 
 ldouble ReadSunEarth::getDistance(int julian_day){
     ifstream in(path_d_sun_earth);
