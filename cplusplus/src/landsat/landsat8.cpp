@@ -1,46 +1,67 @@
 #include "landsat8.h"
+#include <iostream>
 
-void Landsat8::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
+void Landsat8::processNDVI(Tiff band4, Tiff band5, Tiff ndvi, Tiff band_bqa){
     
     uint32 height, width;
+    uint16 sampleBand4, sampleBand5, sampleBqa;
+    int mask = setMask(8);
+
+    TIFFGetField(band4, TIFFTAG_SAMPLEFORMAT, &sampleBand4);
+    TIFFGetField(band5, TIFFTAG_SAMPLEFORMAT, &sampleBand5);
+    TIFFGetField(band_bqa, TIFFTAG_SAMPLEFORMAT, &sampleBqa);
 
     TIFFGetField(band4, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(band4, TIFFTAG_IMAGEWIDTH, &width);
 
     TIFFSetField(ndvi, TIFFTAG_IMAGEWIDTH     , width); 
     TIFFSetField(ndvi, TIFFTAG_IMAGELENGTH    , height);
-    TIFFSetField(ndvi, TIFFTAG_BITSPERSAMPLE  , 64);
-    TIFFSetField(ndvi, TIFFTAG_SAMPLEFORMAT   , 3);
-    TIFFSetField(ndvi, TIFFTAG_COMPRESSION    , 1);
-    TIFFSetField(ndvi, TIFFTAG_PHOTOMETRIC    , 1);
-    TIFFSetField(ndvi, TIFFTAG_ORIENTATION    , 1);
-    TIFFSetField(ndvi, TIFFTAG_SAMPLESPERPIXEL, 1);
-    TIFFSetField(ndvi, TIFFTAG_ROWSPERSTRIP   , 8);
-    TIFFSetField(ndvi, TIFFTAG_RESOLUTIONUNIT , 1);
-    TIFFSetField(ndvi, TIFFTAG_XRESOLUTION    , 1);
-    TIFFSetField(ndvi, TIFFTAG_YRESOLUTION    , 1);
-    TIFFSetField(ndvi, TIFFTAG_PLANARCONFIG , PLANARCONFIG_CONTIG );
 
-    ldouble pi = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648566923460348610454326648213393607260249141273;
-    ldouble costheta = sin(sun_elevation*pi/180);
     ldouble ref4, ref5;
+    ldouble pi = 3.14159265358979323;
+    ldouble sintheta = sin(sun_elevation * pi / 180.0);
 
-    ldouble *lineB4 = new ldouble[width];
-    ldouble *lineB5 = new ldouble[width];
+    tdata_t lineb4, lineb5, lineBqa;
+
+    unsigned short byteSizeb4 = TIFFScanlineSize(band4)/width;
+    unsigned short byteSizeb5 = TIFFScanlineSize(band5)/width;
+    unsigned short byteSizebqa = TIFFScanlineSize(band_bqa)/width;
+
+    lineb4 = _TIFFmalloc(TIFFScanlineSize(band4));
+    lineb5 = _TIFFmalloc(TIFFScanlineSize(band5));
+    lineBqa = _TIFFmalloc(TIFFScanlineSize(band_bqa));
+
     ldouble lineNDVI[width];
+    
+    PixelReader pr4(sampleBand4, byteSizeb4, lineb4);
+    PixelReader pr5(sampleBand5, byteSizeb5, lineb5);
+    PixelReader prbqa(sampleBqa, byteSizebqa, lineBqa);
 
-    for(int i = 0; i < height; i++){
-        TIFFReadScanline(band4, lineB4, i);
-        TIFFReadScanline(band5, lineB5, i);
-        for(int j = 0; j < width; j++){
-            ref4 = (lineB4[j] * 0.00002 - 0.1) / costheta;
-            ref5 = (lineB5[j] * 0.00002 - 0.1) / costheta;
-            lineNDVI[j] = (ref5 - ref4) / (ref5 + ref4);
+    for(int line = 0; line < height; line++){
+        TIFFReadScanline(band4, lineb4, line);
+        TIFFReadScanline(band5, lineb5, line);
+        TIFFReadScanline(band_bqa, lineBqa, line);
+
+        for(int row = 0; row < width; row++){
+
+            ldouble pixelBqa = prbqa.readPixel(row);
+            if(fabs(pixelBqa - mask) > EPS){
+                lineNDVI[row] = NaN;
+                continue;
+            }
+
+            ldouble pixelb4 = pr4.readPixel(row);
+            ldouble pixelb5 = pr5.readPixel(row);
+
+            ref4 = (pixelb4 * 0.00002 - 0.1) / sintheta;
+            ref5 = (pixelb5 * 0.00002 - 0.1) / sintheta;
+            lineNDVI[row] = (ref5 - ref4) / (ref5 + ref4);
+
         }
-        TIFFWriteScanline(ndvi, lineNDVI, i);
+        TIFFWriteScanline(ndvi, lineNDVI, line);
     }
 
-    TIFFClose(band4);
-    TIFFClose(band5);
-    TIFFClose(ndvi);
+    _TIFFfree(lineb4);
+    _TIFFfree(lineb5);
+    _TIFFfree(lineBqa);
 };
