@@ -4,6 +4,7 @@
   
   #include <vector>
   #include <tiffio.h>
+  #include <math.h>
 
   using namespace std;
   
@@ -13,4 +14,6 @@
   
   const ldouble EPS = 1e-7;
 
+  const ldouble NaN = -sqrt(-1.0);
+ 
 #endif

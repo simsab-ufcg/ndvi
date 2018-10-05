@@ -15,3 +15,4 @@ struct PixelReader{
 
 };
 
+int setMask(int number_sensor);

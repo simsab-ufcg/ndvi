@@ -57,3 +57,8 @@ ldouble PixelReader::readPixel(uint32 colunm){
 	}
 	return ret;
 };
+
+int setMask(int number_sensor){
+    if(number_sensor != 8) return 672;
+    else return 2720;
+}

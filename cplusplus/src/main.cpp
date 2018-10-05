@@ -19,15 +19,9 @@ void logger(string description){
     cout << res.tv_sec << " " << description.c_str() << " " << getpid() << endl;
 }
 
-int setMask(int number_sensor){
-    if(number_sensor != 8) return 672;
-    else return 2720;
-}
-
-bool analisyShadow(string path_tiff_band_bqa, int number_sensor){
+bool analisyShadow(Tiff band_bqa, int number_sensor){   
+    
     int fmask = setMask(number_sensor);
-
-    Tiff band_bqa = TIFFOpen(path_tiff_band_bqa.c_str(), "rm");
     
     uint16 sampleBqa;
 
@@ -49,13 +43,12 @@ bool analisyShadow(string path_tiff_band_bqa, int number_sensor){
         TIFFReadScanline(band_bqa, buf, line);
         for(int row = 0; row < width_tiff_bqa; row++){
             pixel = prBqa.readPixel(row);
-            if(fabs(pixel - fmask) <= EPS) quant_pixels_valid++;
+            if(fabs(pixel - fmask) <= EPS)quant_pixels_valid++;
         }
     }
     _TIFFfree(buf);
-    TIFFClose(band_bqa);
-
-    return ((ldouble)quant_pixels_valid/(height_tiff_bqa*width_tiff_bqa)) <= 0.01;
+    
+    return (((ldouble)quant_pixels_valid)/(height_tiff_bqa*width_tiff_bqa)) <= 0.01;
 }
 
 LandsatFunction* setLandsatFunction(int number_sensor, ldouble sun_elevation, ldouble dist_sun_earth){
@@ -124,14 +117,6 @@ int main(int argc, char *argv[]){
     ReadSunEarth readerSunEarth = ReadSunEarth(path_d_sun_earth);
     ldouble dist_sun_earth = readerSunEarth.getDistance(julian_day);
 
-    //verify quantity snow and shadows
-    string path_tiff_band_bqa = argv[INPUT_BAND_BQA_INDEX];
-    
-    if(analisyShadow(path_tiff_band_bqa, number_sensor)){
-        cerr << "Invalid inputs. Lots of cloud in tiff images";
-        exit(0);
-    }
-
     //load band 4 (tiff)
     string path_tiff_band_4 = argv[INPUT_BAND_4_INDEX];
     Tiff band4 = TIFFOpen(path_tiff_band_4.c_str(), "rm");
@@ -140,20 +125,32 @@ int main(int argc, char *argv[]){
     string path_tiff_band_5 = argv[INPUT_BAND_5_INDEX];
     Tiff band5 = TIFFOpen(path_tiff_band_5.c_str(), "rm");
 
+    //load band_bqa (tiff)
+    string path_tiff_band_bqa = argv[INPUT_BAND_BQA_INDEX];
+    Tiff band_bqa = TIFFOpen(path_tiff_band_bqa.c_str(), "rm");
+
     //load tiff ndvi
     string path_output_tiff_ndvi = "./ndvi.tif";
     Tiff ndvi = TIFFOpen(path_output_tiff_ndvi.c_str(), "w8w");
     setup(ndvi, band4);
+
+    //verify quantity snow and shadows
+    
+    if(analisyShadow(band_bqa, number_sensor)){
+        cerr << "Invalid inputs. Lots of cloud in tiff images";
+        exit(0);
+    }
 
     logger("Preprocess");
 
     //process NDVI
     LandsatFunction* landsat;
     landsat = setLandsatFunction(number_sensor, sun_elevation, dist_sun_earth);
-    (*landsat).processNDVI(band4, band5, ndvi);
+    (*landsat).processNDVI(band4, band5, ndvi, band_bqa);
     TIFFClose(band4);
     TIFFClose(band5);
     TIFFClose(ndvi);
+    TIFFClose(band_bqa);
     logger("NDVICalc");
     return 0;
 }

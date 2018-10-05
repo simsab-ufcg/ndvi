@@ -3,5 +3,5 @@
 struct Landsat8: LandsatFunction{
 
   Landsat8(ldouble sun_elevation): LandsatFunction(sun_elevation) {}
-  void processNDVI(Tiff band4, Tiff band5, Tiff ndvi);
+  void processNDVI(Tiff band4, Tiff band5, Tiff ndvi, Tiff band_bqa);
 };

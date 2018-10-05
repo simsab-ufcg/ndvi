@@ -1,13 +1,15 @@
 #include "landsat8.h"
 #include <iostream>
 
-void Landsat8::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
+void Landsat8::processNDVI(Tiff band4, Tiff band5, Tiff ndvi, Tiff band_bqa){
     
     uint32 height, width;
-    uint16 sampleBand4, sampleBand5;
+    uint16 sampleBand4, sampleBand5, sampleBqa;
+    int mask = setMask(8);
 
     TIFFGetField(band4, TIFFTAG_SAMPLEFORMAT, &sampleBand4);
     TIFFGetField(band5, TIFFTAG_SAMPLEFORMAT, &sampleBand5);
+    TIFFGetField(band_bqa, TIFFTAG_SAMPLEFORMAT, &sampleBqa);
 
     TIFFGetField(band4, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(band4, TIFFTAG_IMAGEWIDTH, &width);
@@ -19,24 +21,34 @@ void Landsat8::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
     ldouble pi = 3.14159265358979323;
     ldouble sintheta = sin(sun_elevation * pi / 180.0);
 
-    tdata_t lineb4, lineb5;
+    tdata_t lineb4, lineb5, lineBqa;
 
     unsigned short byteSizeb4 = TIFFScanlineSize(band4)/width;
     unsigned short byteSizeb5 = TIFFScanlineSize(band5)/width;
-    
+    unsigned short byteSizebqa = TIFFScanlineSize(band_bqa)/width;
+
     lineb4 = _TIFFmalloc(TIFFScanlineSize(band4));
     lineb5 = _TIFFmalloc(TIFFScanlineSize(band5));
-    
+    lineBqa = _TIFFmalloc(TIFFScanlineSize(band_bqa));
+
     ldouble lineNDVI[width];
     
     PixelReader pr4(sampleBand4, byteSizeb4, lineb4);
     PixelReader pr5(sampleBand5, byteSizeb5, lineb5);
+    PixelReader prbqa(sampleBqa, byteSizebqa, lineBqa);
 
     for(int line = 0; line < height; line++){
         TIFFReadScanline(band4, lineb4, line);
         TIFFReadScanline(band5, lineb5, line);
+        TIFFReadScanline(band_bqa, lineBqa, line);
 
         for(int row = 0; row < width; row++){
+
+            ldouble pixelBqa = prbqa.readPixel(row);
+            if(fabs(pixelBqa - mask) > EPS){
+                lineNDVI[row] = NaN;
+                continue;
+            }
 
             ldouble pixelb4 = pr4.readPixel(row);
             ldouble pixelb5 = pr5.readPixel(row);
@@ -51,4 +63,5 @@ void Landsat8::processNDVI(Tiff band4, Tiff band5, Tiff ndvi){
 
     _TIFFfree(lineb4);
     _TIFFfree(lineb5);
+    _TIFFfree(lineBqa);
 };
