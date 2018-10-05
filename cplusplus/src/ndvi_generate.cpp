@@ -30,9 +30,9 @@ void NDVIGenerate::processNDVI(int number_sensor, ldouble dist_sun_earth, Tiff n
     line_band_5 = _TIFFmalloc(TIFFScanlineSize(band_5));
     line_band_bqa = _TIFFmalloc(TIFFScanlineSize(band_bqa));
 
-    PixelReader pixel_read_band_4(sample_band_4, byte_size_band_4, line_band_4);
-    PixelReader pixel_read_band_5(sample_band_5, byte_size_band_5, line_band_5);
-    PixelReader pixel_read_band_bqa(sample_band_bqa, byte_size_band_bqa, line_band_bqa);
+    pixel_read_band_4 = PixelReader(sample_band_4, byte_size_band_4, line_band_4);
+    pixel_read_band_5 = PixelReader(sample_band_5, byte_size_band_5, line_band_5);
+    pixel_read_band_bqa = PixelReader(sample_band_bqa, byte_size_band_bqa, line_band_bqa);
 
     switch(number_sensor){
         case 8:
@@ -73,7 +73,7 @@ void NDVIGenerate::landsat(Tiff ndvi, int width_band, int height_band, int mask,
         for(int col = 0; col < width_band; col ++){
             ldouble pixel_band_4 = pixel_read_band_4.readPixel(col);
             ldouble pixel_band_5 = pixel_read_band_5.readPixel(col);
-            
+
             radiance_band_4[col] = pixel_band_4 * param_band_4[GRESCALE] + param_band_4[BRESCALE];
             radiance_band_5[col] = pixel_band_5 * param_band_5[GRESCALE] + param_band_5[BRESCALE];
 

@@ -53,12 +53,12 @@ ldouble PixelReader::readPixel(uint32 colunm){
 					}
 					break;
 				default:
-					cerr << "Unsupported operation!" << endl;
+					cerr << "Unsupported operation 1!" << endl;
 					exit(1);
 			}
 			break;
 		default:
-			cerr << "Unsupported operation!" << endl;
+			cerr << "Unsupported operation 2!" << endl;
 			exit(1);
 	}
 	return ret;

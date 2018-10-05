@@ -132,7 +132,7 @@ int main(int argc, char *argv[]){
 
     NDVIGenerate ndviGen(sun_elevation, band_4, band_5, band_bqa);
     ndviGen.processNDVI(number_sensor, dist_sun_earth, ndvi);
-    
+
     logger("NDVICalc");
 
     TIFFClose(band_4);
