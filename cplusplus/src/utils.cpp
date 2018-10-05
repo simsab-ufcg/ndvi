@@ -1,5 +1,11 @@
 #include "utils.h"
 
+PixelReader::PixelReader() {
+	sampleFormat = 0;
+	byteSize = 0;
+	buffer = NULL;
+};
+
 PixelReader::PixelReader(uint16 _sampleFormat, uint8 _byteSize, tdata_t _buffer){
 	sampleFormat = _sampleFormat;
 	byteSize = _byteSize;

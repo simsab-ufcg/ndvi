@@ -9,6 +9,7 @@ struct PixelReader{
 	uint8 byteSize;
 	tdata_t buffer;
 
+	PixelReader();
 	PixelReader(uint16 _sampleFormat, uint8 _byteSize,tdata_t _buffer);
 
 	ldouble readPixel(uint32 colunm);
