@@ -46,23 +46,10 @@ bool analisyShadow(Tiff band_bqa, int number_sensor){
 }
 
 void setup(Tiff ndvi, Tiff bandBase){
-    uint32 imageWidth, imageLength, rowsPerStrip;
-    uint16 samplePerPixel, bitsPerSample, sampleFormat, compression, photometric, orientation, resolutionUnit, planar_config;
-    float xResolution, yResolution;
+    uint32 imageWidth, imageLength;
 
     TIFFGetField(bandBase, TIFFTAG_IMAGEWIDTH,      &imageWidth);
     TIFFGetField(bandBase, TIFFTAG_IMAGELENGTH,     &imageLength);
-    TIFFGetField(bandBase, TIFFTAG_SAMPLESPERPIXEL, &samplePerPixel);
-    TIFFGetField(bandBase, TIFFTAG_BITSPERSAMPLE,   &bitsPerSample);
-    TIFFGetField(bandBase, TIFFTAG_SAMPLEFORMAT   , &sampleFormat);
-    TIFFGetField(bandBase, TIFFTAG_COMPRESSION    , &compression);
-    TIFFGetField(bandBase, TIFFTAG_PHOTOMETRIC    , &photometric);
-    TIFFGetField(bandBase, TIFFTAG_ORIENTATION    , &orientation);
-    TIFFGetField(bandBase, TIFFTAG_ROWSPERSTRIP   , &rowsPerStrip);
-    TIFFGetField(bandBase, TIFFTAG_RESOLUTIONUNIT , &resolutionUnit);
-    TIFFGetField(bandBase, TIFFTAG_XRESOLUTION    , &xResolution);
-    TIFFGetField(bandBase, TIFFTAG_YRESOLUTION    , &yResolution);
-    TIFFGetField(bandBase, TIFFTAG_PLANARCONFIG ,   &planar_config );
     
     TIFFSetField(ndvi, TIFFTAG_IMAGEWIDTH     , imageWidth); 
     TIFFSetField(ndvi, TIFFTAG_IMAGELENGTH    , imageLength);
@@ -75,8 +62,7 @@ void setup(Tiff ndvi, Tiff bandBase){
     TIFFSetField(ndvi, TIFFTAG_RESOLUTIONUNIT , 1);
     TIFFSetField(ndvi, TIFFTAG_XRESOLUTION    , 1);
     TIFFSetField(ndvi, TIFFTAG_YRESOLUTION    , 1);
-    TIFFSetField(ndvi, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG );
-    
+    TIFFSetField(ndvi, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG);
 }
 
 int main(int argc, char *argv[]){
@@ -119,7 +105,7 @@ int main(int argc, char *argv[]){
 
     //load tiff ndvi
     string path_output_tiff_ndvi = "./ndvi.tif";
-    Tiff ndvi = TIFFOpen(path_output_tiff_ndvi.c_str(), "w8w");
+    Tiff ndvi = TIFFOpen(path_output_tiff_ndvi.c_str(), "w8m");
     setup(ndvi, band_4);
 
     //verify quantity snow and shadows

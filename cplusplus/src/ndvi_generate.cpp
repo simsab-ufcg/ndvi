@@ -19,9 +19,6 @@ void NDVIGenerate::processNDVI(int number_sensor, ldouble dist_sun_earth, Tiff n
     TIFFGetField(band_4, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(band_4, TIFFTAG_IMAGEWIDTH, &width_band);
 
-    TIFFSetField(ndvi, TIFFTAG_IMAGEWIDTH     , width_band); 
-    TIFFSetField(ndvi, TIFFTAG_IMAGELENGTH    , height_band);
-
     unsigned short byte_size_band_4 = TIFFScanlineSize(band_4) / width_band;
     unsigned short byte_size_band_5 = TIFFScanlineSize(band_5) / width_band;
     unsigned short byte_size_band_bqa = TIFFScanlineSize(band_bqa) / width_band;
