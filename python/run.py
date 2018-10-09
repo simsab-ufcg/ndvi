@@ -2,7 +2,7 @@ import gdal
 import sys
 import numpy as np
 from numpy import nan_to_num, subtract, add, divide, multiply
-#import metadatareader TODO OLIVEIRA
+import metaReader
 from gdal import Open
 from ndvi import NDVI
 
@@ -23,11 +23,11 @@ def shadow_check(bqa_band, dim, mask):
 
 def main():
 
-	if len(sys.argv) < 6:
+	if len(sys.argv) < 7:
 		print "Few arguments"
 		sys.exit()
 
-	elif len(sys.argv) > 6:
+	elif len(sys.argv) > 7:
 		print "Too many arguments"
 		sys.exit()
 
@@ -36,8 +36,8 @@ def main():
 	nir_path = str(sys.argv[2])
 	bqa_path = str(sys.argv[3])
 	mtl_path = str(sys.argv[4])
-	output_path = str(sys.argv[5])
-
+	d_sun_earth_path = str(sys.argv[5])
+	output_path = str(sys.argv[6])
 
 	# Open red image and get its only band.
 	red_tiff = Open(red_path)
@@ -54,13 +54,14 @@ def main():
 	# Get the rows and cols from one of the images (both should always be the same)
 	row, col, geotransform = nir_tiff.RasterYSize, nir_tiff.RasterXSize, nir_tiff.GetGeoTransform()
 
-	#
-	#	Read meta data
-	#
+	# Reading metadata
+	parameters = metaReader.readParameters(mtl_path, d_sun_earth_path)
 
-	number_sensor = 8 # test-only
-	sun_elevation = 54.26510562 #test-only
-	dist_sun_earth = 0.99183 #test-only julian day
+	number_sensor = int(parameters[0])
+	julian_day = int(parameters[1])
+	
+	sun_elevation = float(parameters[2])
+	dist_sun_earth = float(parameters[3])
 
 	mask = get_mask(number_sensor)
 
