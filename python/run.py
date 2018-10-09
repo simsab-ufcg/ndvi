@@ -23,11 +23,11 @@ def shadow_check(bqa_band, dim, mask):
 
 def main():
 
-	if len(sys.argv) < 7:
+	if len(sys.argv) < 6:
 		print "Few arguments"
 		sys.exit()
 
-	elif len(sys.argv) > 7:
+	elif len(sys.argv) > 6:
 		print "Too many arguments"
 		sys.exit()
 
@@ -36,8 +36,8 @@ def main():
 	nir_path = str(sys.argv[2])
 	bqa_path = str(sys.argv[3])
 	mtl_path = str(sys.argv[4])
-	d_sun_earth_path = str(sys.argv[5])
-	output_path = str(sys.argv[6])
+	output_path = str(sys.argv[5])
+	d_sun_earth_path = 'd_sun_earth'
 
 	# Open red image and get its only band.
 	red_tiff = Open(red_path)
