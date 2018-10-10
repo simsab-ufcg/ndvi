@@ -1,0 +1,10 @@
+#!/bin/bash
+
+git clone https://github.com/simsab-ufcg/landsat-samples.git
+mv landsat-samples samples
+
+cp samples/sample1/input/* .
+mv LC08_L1TP_215065_20170815_20170825_01_T1_B4.TIF b4.tif
+mv LC08_L1TP_215065_20170815_20170825_01_T1_B5.TIF b5.tif
+mv LC08_L1TP_215065_20170815_20170825_01_T1_BQA.TIF bqa.tif
+mv LC08_L1TP_215065_20170815_20170825_01_T1_MTL.txt mtl.txt
