@@ -12,4 +12,4 @@ using Tiff = TIFF*;
 
 const ldouble EPS = 1e-7;
 const ldouble NaN = -sqrt(-1.0);
-const ldouble PI = 3.14159265358979323;
+const ldouble PI = acos(-1);
