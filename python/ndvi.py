@@ -70,14 +70,14 @@ class NDVI:
         BRESCALE = 1
         ESUN = 2
 
-        radiance4 = self._red_band * (params_band4[GRESCALE] + params_band4[BRESCALE])
-        radiance5 = self._nir_band * (params_band5[GRESCALE] + params_band5[BRESCALE])
+        radiance4 = self._red_band * params_band4[GRESCALE] + params_band4[BRESCALE]
+        radiance5 = self._nir_band * params_band5[GRESCALE] + params_band5[BRESCALE]
 
         radiance4[radiance4 < 0] = 0
         radiance5[radiance5 < 0] = 0
 
-        reflectance4 = math.acos(-1) * radiance4 * (dist_sun_earth ** 2) / self.sintheta * params_band4[ESUN]
-        reflectance5 = math.acos(-1) * radiance5 * (dist_sun_earth ** 2) / self.sintheta * params_band5[ESUN]
+        reflectance4 = (math.acos(-1) * radiance4 * (dist_sun_earth ** 2)) / (self.sintheta * params_band4[ESUN])
+        reflectance5 = (math.acos(-1) * radiance5 * (dist_sun_earth ** 2)) / (self.sintheta * params_band5[ESUN])
 
         result = self._ndvi_equation(reflectance4, reflectance5)
 
