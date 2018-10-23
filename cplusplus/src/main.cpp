@@ -71,10 +71,11 @@ int main(int argc, char *argv[]){
     const int INPUT_BAND_5_INDEX = 2;
     const int INPUT_BAND_BQA_INDEX = 3;
     const int INPUT_BAND_MTL_INDEX = 4;
+    const int OUTPUT_NAME_INDEX = 5;
 
     //valid arguments
-    if(argc < 5 || argc > 5){
-        cerr << "Missing arguments for processing NDVI TIF";
+    if(argc != 6){
+        cerr << "Incorrect number of arguments for processing NDVI TIF";
         exit(0);
     }
 
@@ -104,15 +105,9 @@ int main(int argc, char *argv[]){
     Tiff band_bqa = TIFFOpen(path_tiff_band_bqa.c_str(), "rm");
 
     //load tiff ndvi
-    string path_output_tiff_ndvi = "./ndvi.tif";
+    string path_output_tiff_ndvi = argv[OUTPUT_NAME_INDEX];
     Tiff ndvi = TIFFOpen(path_output_tiff_ndvi.c_str(), "w8m");
     setup(ndvi, band_4);
-
-    //verify quantity snow and shadows
-    if(analisyShadow(band_bqa, number_sensor)){
-        cerr << "Invalid inputs. Lots of cloud in tiff images";
-        exit(0);
-    }
 
     logger("Preprocess");
 
