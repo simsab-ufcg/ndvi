@@ -13,6 +13,8 @@ struct ReadMeta{
 
     string search(string filter);
     ldouble getSunElevation();
+    ldouble getDistEarthSun();
+    vector<ldouble> getReflectanceBand(int band);
     int getNumberSensor();
     int getJulianDay();
     int getYear();

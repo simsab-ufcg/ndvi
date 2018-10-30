@@ -3,8 +3,9 @@
 #include <unistd.h>
 #include <string.h>
 #include "read_meta.h"
-#include "read_sun_earth.h"
+//#include "read_sun_earth.h"
 #include "ndvi_generate.h"
+#include "ndvi_toa_generate.h"
 #include "utils.h"
 
 using namespace std;
@@ -72,9 +73,10 @@ int main(int argc, char *argv[]){
     const int INPUT_BAND_BQA_INDEX = 3;
     const int INPUT_BAND_MTL_INDEX = 4;
     const int OUTPUT_NAME_INDEX = 5;
+    const int INPUT_FLAG = 6;
 
     //valid arguments
-    if(argc != 6){
+    if(argc < 6 || argc > 7){
         cerr << "Incorrect number of arguments for processing NDVI TIF";
         exit(0);
     }
@@ -83,14 +85,10 @@ int main(int argc, char *argv[]){
     string path_meta_file = argv[INPUT_BAND_MTL_INDEX];
     ReadMeta reader_meta = ReadMeta(path_meta_file);
     ldouble sun_elevation = reader_meta.getSunElevation();
+    ldouble dist_sun_earth = reader_meta.getDistEarthSun();
     int number_sensor = reader_meta.getNumberSensor();
     int julian_day = reader_meta.getJulianDay();
     int year = reader_meta.getYear();
-
-    //load distance between sun and earth
-    string path_d_sun_earth = "./src/d_sun_earth";
-    ReadSunEarth reader_sun_earth = ReadSunEarth(path_d_sun_earth);
-    ldouble dist_sun_earth = reader_sun_earth.getDistance(julian_day);
 
     //load band 4 (tiff)
     string path_tiff_band_4 = argv[INPUT_BAND_4_INDEX];
@@ -111,8 +109,17 @@ int main(int argc, char *argv[]){
 
     logger("Preprocess");
 
-    NDVIGenerate ndviGen(sun_elevation, band_4, band_5, band_bqa);
-    ndviGen.processNDVI(number_sensor, dist_sun_earth, ndvi);
+    if(argc == 7){
+        NDVITOAGenerate ndviGen(sun_elevation, band_4, band_5, band_bqa);
+
+        vector<ldouble> radiometric_band_b4 = reader_meta.getReflectanceBand(4);
+        vector<ldouble> radiometric_band_b5 = reader_meta.getReflectanceBand(5);
+
+        ndviGen.processNDVI(number_sensor, dist_sun_earth, ndvi, radiometric_band_b4, radiometric_band_b5);
+    }else{
+        NDVIGenerate ndviGen(sun_elevation, band_4, band_5, band_bqa);
+        ndviGen.processNDVI(number_sensor, dist_sun_earth, ndvi);
+    }
 
     logger("NDVICalc");
 
