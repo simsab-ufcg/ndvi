@@ -37,17 +37,3 @@ int ReadMeta::getNumberSensor(){
     string resultSearch = search("LANDSAT_SCENE_ID");
     return atoi(new char(resultSearch[3]));
 }
-
-int ReadMeta::getJulianDay(){
-    string resultSearch = search("LANDSAT_SCENE_ID");
-    char julianDay[3];
-    strncpy(julianDay, &resultSearch[14], 3);
-    return atoi(julianDay);
-}
-
-int ReadMeta::getYear(){
-    string resultSearch = search("LANDSAT_SCENE_ID");
-    char year[4];
-    strncpy(year, &resultSearch[10], 4);
-    return atoi(year);
-}

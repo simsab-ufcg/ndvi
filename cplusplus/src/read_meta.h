@@ -16,8 +16,6 @@ struct ReadMeta{
     ldouble getDistEarthSun();
     vector<ldouble> getReflectanceBand(int band);
     int getNumberSensor();
-    int getJulianDay();
-    int getYear();
 };
 
 
