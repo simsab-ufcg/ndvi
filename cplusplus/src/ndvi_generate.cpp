@@ -74,8 +74,8 @@ void NDVIGenerate::landsat(Tiff ndvi, int width_band, int height_band, int mask,
             radiance_band_red[col] = pixel_band_red * param_band_red[GRESCALE] + param_band_red[BRESCALE];
             radiance_band_nir[col] = pixel_band_nir * param_band_nir[GRESCALE] + param_band_nir[BRESCALE];
 
-            if(radiance_band_red[col] < 0) radiance_band_red[col] = 0;
-            if(radiance_band_nir[col] < 0) radiance_band_nir[col] = 0;
+            //if(radiance_band_red[col] < 0) radiance_band_red[col] = 0;
+            //if(radiance_band_nir[col] < 0) radiance_band_nir[col] = 0;
         }
 
         //ReflectanceCalc
@@ -93,8 +93,10 @@ void NDVIGenerate::landsat(Tiff ndvi, int width_band, int height_band, int mask,
 
             line_ndvi[col] = (reflectance_pixel_band_nir - reflectance_pixel_band_red) / (reflectance_pixel_band_nir + reflectance_pixel_band_red);
 
-            if(line_ndvi[col] > 1 || line_ndvi[col] < -1)
-                line_ndvi[col] = NaN;
+            if(line_ndvi[col] > 1)
+                line_ndvi[col] = 1;
+            if(line_ndvi[col] < -1)
+                line_ndvi[col] = -1;
         }
 
         TIFFWriteScanline(ndvi, line_ndvi, line);
@@ -126,6 +128,10 @@ void NDVIGenerate::landsat(Tiff ndvi, int width_band, int height_band, int mask)
 
             line_ndvi[col] = (reflectance_pixel_band_nir - reflectance_pixel_band_red) / (reflectance_pixel_band_nir + reflectance_pixel_band_red);
 
+            if(line_ndvi[col] > 1)
+                line_ndvi[col] = 1;
+            if(line_ndvi[col] < -1)
+                line_ndvi[col] = -1;
         }
         TIFFWriteScanline(ndvi, line_ndvi, line);
     }

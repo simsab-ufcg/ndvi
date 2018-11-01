@@ -67,8 +67,10 @@ void NDVITOAGenerate::landsat(Tiff ndvi, int width_band, int height_band, int ma
 
             line_ndvi[col] = (reflectance_pixel_band_nir - reflectance_pixel_band_red) / (reflectance_pixel_band_nir + reflectance_pixel_band_red);
 
-            if(line_ndvi[col] > 1 || line_ndvi[col] < -1)
-                line_ndvi[col] = NaN;
+            if(line_ndvi[col] > 1)
+                line_ndvi[col] = 1;
+            if(line_ndvi[col] < -1)
+                line_ndvi[col] = -1;
         }
 
         TIFFWriteScanline(ndvi, line_ndvi, line);
