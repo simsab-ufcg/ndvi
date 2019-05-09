@@ -3,8 +3,9 @@
 #include <unistd.h>
 #include <string.h>
 #include "read_meta.h"
-#include "read_sun_earth.h"
+#include "parse_args.h"
 #include "ndvi_generate.h"
+#include "ndvi_toa_generate.h"
 #include "utils.h"
 
 using namespace std;
@@ -67,57 +68,64 @@ void setup(Tiff ndvi, Tiff bandBase){
 
 int main(int argc, char *argv[]){
 
-    const int INPUT_BAND_4_INDEX = 1;
-    const int INPUT_BAND_5_INDEX = 2;
-    const int INPUT_BAND_BQA_INDEX = 3;
-    const int INPUT_BAND_MTL_INDEX = 4;
-    const int OUTPUT_NAME_INDEX = 5;
+    vector<string> args = convertToVector(argc, argv);
+    bool isToa = hasFlag(args, "-toa");
+
+    const int INPUT_BAND_RED_INDEX = 0;
+    const int INPUT_BAND_NIR_INDEX = 1;
+    const int INPUT_BAND_BQA_INDEX = 2;
+    const int INPUT_BAND_MTL_INDEX = 3;
+    const int OUTPUT_NAME_INDEX = 4;
 
     //valid arguments
-    if(argc != 6){
+    int number_arguments = args.size();
+    if(number_arguments < 5 || number_arguments > 5){
         cerr << "Incorrect number of arguments for processing NDVI TIF";
         exit(0);
     }
 
     //load meta file
-    string path_meta_file = argv[INPUT_BAND_MTL_INDEX];
+    string path_meta_file = args[INPUT_BAND_MTL_INDEX];
     ReadMeta reader_meta = ReadMeta(path_meta_file);
     ldouble sun_elevation = reader_meta.getSunElevation();
+    ldouble dist_sun_earth = reader_meta.getDistEarthSun();
     int number_sensor = reader_meta.getNumberSensor();
-    int julian_day = reader_meta.getJulianDay();
-    int year = reader_meta.getYear();
-
-    //load distance between sun and earth
-    string path_d_sun_earth = "./src/d_sun_earth";
-    ReadSunEarth reader_sun_earth = ReadSunEarth(path_d_sun_earth);
-    ldouble dist_sun_earth = reader_sun_earth.getDistance(julian_day);
 
     //load band 4 (tiff)
-    string path_tiff_band_4 = argv[INPUT_BAND_4_INDEX];
-    Tiff band_4 = TIFFOpen(path_tiff_band_4.c_str(), "rm");
+    string path_tiff_band_red = args[INPUT_BAND_RED_INDEX];
+    Tiff band_red = TIFFOpen(path_tiff_band_red.c_str(), "rm");
 
     //load band 5 (tiff)
-    string path_tiff_band_5 = argv[INPUT_BAND_5_INDEX];
-    Tiff band_5 = TIFFOpen(path_tiff_band_5.c_str(), "rm");
+    string path_tiff_band_nir = args[INPUT_BAND_NIR_INDEX];
+    Tiff band_nir = TIFFOpen(path_tiff_band_nir.c_str(), "rm");
 
     //load band_bqa (tiff)
-    string path_tiff_band_bqa = argv[INPUT_BAND_BQA_INDEX];
+    string path_tiff_band_bqa = args[INPUT_BAND_BQA_INDEX];
     Tiff band_bqa = TIFFOpen(path_tiff_band_bqa.c_str(), "rm");
 
     //load tiff ndvi
-    string path_output_tiff_ndvi = argv[OUTPUT_NAME_INDEX];
+    string path_output_tiff_ndvi = args[OUTPUT_NAME_INDEX];
     Tiff ndvi = TIFFOpen(path_output_tiff_ndvi.c_str(), "w8m");
-    setup(ndvi, band_4);
+    setup(ndvi, band_red);
 
     logger("Preprocess");
 
-    NDVIGenerate ndviGen(sun_elevation, band_4, band_5, band_bqa);
-    ndviGen.processNDVI(number_sensor, dist_sun_earth, ndvi);
+    if(isToa){
+        NDVITOAGenerate ndviGen(sun_elevation, band_red, band_nir, band_bqa);
+
+        vector<ldouble> radiometric_band_red = reader_meta.getReflectanceBand(4);
+        vector<ldouble> radiometric_band_nir = reader_meta.getReflectanceBand(5);
+
+        ndviGen.processNDVI(number_sensor, dist_sun_earth, ndvi, radiometric_band_red, radiometric_band_nir);
+    }else{
+        NDVIGenerate ndviGen(sun_elevation, band_red, band_nir, band_bqa);
+        ndviGen.processNDVI(number_sensor, dist_sun_earth, ndvi);
+    }
 
     logger("NDVICalc");
 
-    TIFFClose(band_4);
-    TIFFClose(band_5);
+    TIFFClose(band_red);
+    TIFFClose(band_nir);
     TIFFClose(band_bqa);
     TIFFClose(ndvi);
 

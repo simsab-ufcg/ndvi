@@ -22,21 +22,18 @@ ldouble ReadMeta::getSunElevation(){
     return atof(resultSearch.c_str());
 }
 
+ldouble ReadMeta::getDistEarthSun(){
+    string resultSearch = search("EARTH_SUN_DISTANCE");
+    return atof(resultSearch.c_str());
+}
+
+vector<ldouble> ReadMeta::getReflectanceBand(int number_band){
+    string resultSearchMultBand = search("REFLECTANCE_MULT_BAND_" + to_string(number_band));
+    string resultSearchAddBand = search("REFLECTANCE_ADD_BAND_" + to_string(number_band));
+    return {atof(resultSearchMultBand.c_str()), atof(resultSearchAddBand.c_str())};
+}
+
 int ReadMeta::getNumberSensor(){
     string resultSearch = search("LANDSAT_SCENE_ID");
     return atoi(new char(resultSearch[3]));
-}
-
-int ReadMeta::getJulianDay(){
-    string resultSearch = search("LANDSAT_SCENE_ID");
-    char julianDay[3];
-    strncpy(julianDay, &resultSearch[14], 3);
-    return atoi(julianDay);
-}
-
-int ReadMeta::getYear(){
-    string resultSearch = search("LANDSAT_SCENE_ID");
-    char year[4];
-    strncpy(year, &resultSearch[10], 4);
-    return atoi(year);
 }

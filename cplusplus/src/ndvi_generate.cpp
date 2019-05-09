@@ -1,4 +1,3 @@
-
 #include "ndvi_generate.h"
 
 NDVIGenerate::NDVIGenerate(ldouble _sun_elevation, Tiff _band_red, Tiff _band_nir, Tiff _band_bqa){
@@ -44,8 +43,8 @@ void NDVIGenerate::processNDVI(int number_sensor, ldouble dist_sun_earth, Tiff n
             break;
         default:
             cerr << "Type of input bands unsupported!" << endl;
-			exit(3 << 3);
-    }
+			exit(1);
+    } 
 
     _TIFFfree(line_band_red);
     _TIFFfree(line_band_nir);
@@ -63,15 +62,9 @@ void NDVIGenerate::landsat(Tiff ndvi, int width_band, int height_band, int mask,
     ldouble line_ndvi[width_band];
 
     for(int line = 0; line < height_band; line ++){
-        if(TIFFReadScanline(band_red, line_band_red, line) < 0){
-            exit(2 << 3);
-        }
-        if(TIFFReadScanline(band_nir, line_band_nir, line) < 0){
-            exit(2 << 3);
-        }
-        if(TIFFReadScanline(band_bqa, line_band_bqa, line) < 0){
-            exit(2 << 3);
-        }
+        TIFFReadScanline(band_red, line_band_red, line);
+        TIFFReadScanline(band_nir, line_band_nir, line);
+        TIFFReadScanline(band_bqa, line_band_bqa, line);
 
         // RadianceCalc
         for(int col = 0; col < width_band; col ++){
@@ -81,15 +74,14 @@ void NDVIGenerate::landsat(Tiff ndvi, int width_band, int height_band, int mask,
             radiance_band_red[col] = pixel_band_red * param_band_red[GRESCALE] + param_band_red[BRESCALE];
             radiance_band_nir[col] = pixel_band_nir * param_band_nir[GRESCALE] + param_band_nir[BRESCALE];
 
-            if(radiance_band_red[col] < 0) radiance_band_red[col] = 0;
-            if(radiance_band_nir[col] < 0) radiance_band_nir[col] = 0;
+            //if(radiance_band_red[col] < 0) radiance_band_red[col] = 0;
+            //if(radiance_band_nir[col] < 0) radiance_band_nir[col] = 0;
         }
 
         //ReflectanceCalc
         for(int col = 0; col < width_band; col++){
             ldouble pixel_band_bqa = pixel_read_band_bqa.readPixel(col);
-            if(fabs(pixel_band_bqa - mask) > EPS &&
-               fabs(pixel_band_bqa - 20480) > EPS){
+            if(fabs(pixel_band_bqa - mask) > EPS){
                 line_ndvi[col] = NaN;
                 continue;
             }
@@ -107,9 +99,7 @@ void NDVIGenerate::landsat(Tiff ndvi, int width_band, int height_band, int mask,
                 line_ndvi[col] = -1;
         }
 
-        if(TIFFWriteScanline(ndvi, line_ndvi, line) < 0){
-            exit(4 << 3);
-        }
+        TIFFWriteScanline(ndvi, line_ndvi, line);
     }
 }
 
@@ -118,20 +108,13 @@ void NDVIGenerate::landsat(Tiff ndvi, int width_band, int height_band, int mask)
     ldouble line_ndvi[width_band];
 
     for(int line = 0; line < height_band; line++){
-        if(TIFFReadScanline(band_red, line_band_red, line) < 0){
-            exit(2 << 3);
-        }
-        if(TIFFReadScanline(band_nir, line_band_nir, line) < 0){
-            exit(2 << 3);
-        }
-        if(TIFFReadScanline(band_bqa, line_band_bqa, line) < 0){
-            exit(2 << 3);
-        }
+        TIFFReadScanline(band_red, line_band_red, line);
+        TIFFReadScanline(band_nir, line_band_nir, line);
+        TIFFReadScanline(band_bqa, line_band_bqa, line);
 
         for(int col = 0; col < width_band; col++){
             ldouble pixel_band_bqa = pixel_read_band_bqa.readPixel(col);
-            if(fabs(pixel_band_bqa - mask) > EPS &&
-               fabs(pixel_band_bqa - 20480) > EPS){
+            if(fabs(pixel_band_bqa - mask) > EPS){
                 line_ndvi[col] = NaN;
                 continue;
             }
@@ -150,8 +133,6 @@ void NDVIGenerate::landsat(Tiff ndvi, int width_band, int height_band, int mask)
             if(line_ndvi[col] < -1)
                 line_ndvi[col] = -1;
         }
-        if (TIFFWriteScanline(ndvi, line_ndvi, line) < 0) {
-            exit(4 << 3);
-        }
+        TIFFWriteScanline(ndvi, line_ndvi, line);
     }
 }
